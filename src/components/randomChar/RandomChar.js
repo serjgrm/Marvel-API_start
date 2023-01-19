@@ -1,49 +1,60 @@
-import {Component} from 'react'
-
+import { Component } from 'react';
+import Spinner from '../spinner/Spinner';
+import ErrorMessage from '../errorMessage/ErrorMessage';
 import MarvelService from '../../services/MarvelService';
-import Spinner from '../spinner/Spinner'
-import ErrorMessage from '../errorMessage/ErrorMessage'
-
 import './randomChar.scss';
 import mjolnir from '../../resources/img/mjolnir.png';
 
-
 class RandomChar extends Component {
-    constructor(props){
-        super(props);
-        this.updateChar();
-    }
     state = {
-        char:{},
+        char: {},
         loading: true,
         error: false
     }
-    onError = () =>{
+
+    marvelService = new MarvelService();
+
+    componentDidMount() {
+        this.updateChar();
+        // this.timerId = setInterval(this.updateChar, 15000);
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.timerId);
+    }
+
+    onCharLoaded = (char) => {
+        this.setState({
+            char, 
+            loading: false
+        })
+    }
+
+    onCharLoading = () => {
+        this.setState({
+            loading: true
+        })
+    }
+
+    onError = () => {
         this.setState({
             loading: false,
             error: true
         })
     }
 
-    marvelService = new MarvelService();
-    onCharLoaded = (char) => {
-        // this.setState({char: char}) 
-        this.setState({
-            char,
-            loading:false
-        })
-    }
-    updateChar = ()=>{
-        const id = Math.floor(Math.random() * (1011400-1011000) +1011000);
+    updateChar = () => {
+        const id = Math.floor(Math.random() * (1011400 - 1011000) + 1011000);
+        this.onCharLoading();
         this.marvelService
-        .getCharacter(id)
-        .then(this.onCharLoaded)
-        .catch(this.onError);
+            .getCharacter(id)
+            .then(this.onCharLoaded)
+            .catch(this.onError);
     }
-    render (){
 
-        let {loading,error,char} = this.state;   
+    render() {
 
+        const {char, loading, error} = this.state;
         const errorMessage = error ? <ErrorMessage/> : null;
         const spinner = loading ? <Spinner/> : null;
         const content = !(loading || error) ? <View char={char}/> : null;
@@ -61,7 +72,7 @@ class RandomChar extends Component {
                     <p className="randomchar__title">
                         Or choose another one
                     </p>
-                    <button className="button button__main">
+                    <button onClick={this.updateChar} className="button button__main">
                         <div className="inner">try it</div>
                     </button>
                     <img src={mjolnir} alt="mjolnir" className="randomchar__decoration"/>
@@ -71,18 +82,16 @@ class RandomChar extends Component {
     }
 }
 
-const View = ({char})=>{
-
-    let {name,description, thumbnail, homepage, wiki} = char;
-
-    if (!description){
-        description = 'We dont have description now))) Lorem ipsum, dolor sit amet consectetur adipisicing elit. Illo labore deleniti, culpa doloremque beatae porro voluptas debitis modi ullam vel, quae nostrum nesciunt explicabo ad aut! Expedita magnam laboriosam sint!'
-    }   if (description.length > 45){
-        description = description.slice(0,45) + '...'
+const View = ({char}) => {
+    const {name, description, thumbnail, homepage, wiki} = char;
+    let imgStyle = {'objectFit' : 'cover'};
+    if (thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
+        imgStyle = {'objectFit' : 'contain'};
     }
+
     return (
-        <div className="randomchar__block">
-            <img src={thumbnail} alt="Random character" className="randomchar__img"/>
+        <div className="randomchar__block" key={0}>
+            <img src={thumbnail} alt="Random character" className="randomchar__img" style={imgStyle}/>
             <div className="randomchar__info">
                 <p className="randomchar__name">{name}</p>
                 <p className="randomchar__descr">
