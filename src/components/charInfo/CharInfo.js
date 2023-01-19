@@ -23,6 +23,13 @@ class CharInfo extends Component {
         }
     }
 
+    componentDidCatch(err,info){
+        console.log(err, info)
+        this.setState({
+            error: true
+        })
+    }
+    
     updateChar = ()=>{
         const {charId} = this.props;
         if (!charId){
@@ -32,6 +39,8 @@ class CharInfo extends Component {
         this.marvelService.getCharacter(charId)
         .then(this.onCharLoaded)
         .catch(this.onError)
+
+        this.foo.bar = 0;
     }
     onCharLoaded = (char) => {
         this.setState({
@@ -74,11 +83,18 @@ class CharInfo extends Component {
 }
 
 const View = ({char})=>{
+
     const {name,description,thumbnail,homepage,wiki,comics} = char;
+
+    let imgStyle = {'objectFit' : 'cover'};
+    if (thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
+        imgStyle = {'objectFit' : 'contain'};
+    }
+
     return (
         <>
          <div className="char__basics">
-                    <img src={thumbnail} alt={name}/>
+                    <img src={thumbnail} alt={name} style={imgStyle}/>
                     <div>
                         <div className="char__info-name">{name}</div>
                         <div className="char__btns">
@@ -96,8 +112,13 @@ const View = ({char})=>{
                 </div>
                 <div className="char__comics">Comics:</div>
                 <ul className="char__comics-list">
+                    {comics.length > 0 ? null : 'There is no comics with this character.'}
                     {
                         comics.map((item,i)=>{
+                            // eslint-disable-next-line
+                            if (i>9){
+                                return
+                            }                            
                             return (
                                     <li key={i} className="char__comics-item">
                                         {item.name}
@@ -110,5 +131,4 @@ const View = ({char})=>{
         </>
     )
 }
-
 export default CharInfo;
